@@ -1,24 +1,57 @@
-import logo from './logo.svg';
-import './App.css';
+
+
+// components
+import Login from './components/login/Login';
+import Signup from './components/login/Signup';
+import Home from './components/home/Home';
+import Profile from './components/profile/Profile';
+import Header from './components/header/Header';
+import DataProvider from './context/DataProvider';
+
+import { getUser, userLogin } from './redux/features/userSlice';
+
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+
+const PrivateRoute = ({ isAuthenticated, ...props }) => {
+  const reduxUser = useSelector(getUser);
+
+  const dispatch = useDispatch();
+
+  const user = sessionStorage.getItem('user');
+
+  if (!reduxUser.username && user) {
+    dispatch(userLogin(JSON.parse(user)));
+  }
+
+  return user ? 
+    <>
+      <Header />
+      <Outlet />
+    </> : <Navigate replace to='/login' />
+};
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <DataProvider>
+      <BrowserRouter>
+        <Routes>
+
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/login' element={<Login />} />
+
+          <Route path='/' element={<PrivateRoute />} >
+            <Route path='/' element={<Home />} />
+          </Route>
+
+          <Route path='/profile/:username' element={<PrivateRoute />} >
+            <Route path='/profile/:username' element={<Profile />} />
+          </Route>
+          
+        </Routes>
+      </BrowserRouter>
+    </DataProvider>
   );
 }
 
